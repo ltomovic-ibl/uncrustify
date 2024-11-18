@@ -2227,7 +2227,7 @@ void uncrustify_file(const file_mem &fm, FILE *pfout, const char *parsed_file,
       }
       newlines_insert_blank_lines();
 
-      if (options::pos_bool() != TP_IGNORE)
+      if (options::pos_bool() != TP_IGNORE || (options::code_width() > 0 && options::nl_bool_expression_multiline()))
       {
          log_rule_B("pos_bool");
          newlines_chunk_pos(CT_BOOL, options::pos_bool());
