@@ -2571,7 +2571,21 @@ void indent_text()
                     __func__, __LINE__, pc->GetOrigLine(), indent_column, pc->Text());
             reindent_line(pc, indent_column);
          }
-         frm.top().SetIndent(pc->GetColumn() + pc->Len());
+         Chunk* open_paren = pc;
+         Chunk* closing_paren = pc->GetClosingParen();
+
+         bool indent_bool_more = false;
+         if ( (open_paren->GetPrevNcNnl()->Is(CT_BOOL) && open_paren->GetPrevNcNnl()->GetPrev()->IsNewline())
+            || (closing_paren && closing_paren->GetNextNcNnl()->Is(CT_BOOL) && closing_paren->GetNext()->IsNewline()))
+         {
+            indent_bool_more = true;
+            frm.top().SetIndent(frm.prev().GetIndent() + indent_size);
+         }
+         else
+         {
+            frm.top().SetIndent(pc->GetColumn() + pc->Len());
+         }
+
          log_indent();
 
          if (  pc->Is(CT_SQUARE_OPEN)
@@ -2802,7 +2816,15 @@ void indent_text()
                   }
                   else
                   {
-                     frm.top().SetIndent(next->GetColumn());
+                     if (indent_bool_more)
+                     {
+                        frm.top().SetIndent(next_tab_column(frm.prev().GetIndent() + 1));
+                     }
+                     else
+                     {
+                        frm.top().SetIndent(next->GetColumn());
+                     }
+
                   }
                   log_indent();
                }
@@ -2846,7 +2868,7 @@ void indent_text()
             {
                frm.top().SetIndent(get_indent_first_continue(pc->GetNext()));
             }
-            else
+            else if (!indent_bool_more)
             {
                frm.top().SetIndent(frm.prev().GetIndent());
             }
